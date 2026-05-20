@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "forms": [
+    {
+      "entity": "katzen",
+      "app_id": "6a0c45cdd4b461a56b9d6cb4",
+      "path": "/rest/apps/6a0c45cdd4b461a56b9d6cb4/records",
+      "allowed_fields": [
+        "katzenname",
+        "rasse",
+        "geburtsdatum",
+        "geschlecht",
+        "farbe",
+        "impfstatus",
+        "besonderheiten"
+      ],
+      "pow": true,
+      "pow_difficulty": 50000,
+      "title": "Katzen — Formular"
+    },
+    {
+      "entity": "zusatzleistungen",
+      "app_id": "6a0c45cd1be9f04e188b08dd",
+      "path": "/rest/apps/6a0c45cd1be9f04e188b08dd/records",
+      "allowed_fields": [
+        "leistungsname",
+        "beschreibung",
+        "preis"
+      ],
+      "pow": true,
+      "pow_difficulty": 50000,
+      "title": "Zusatzleistungen — Formular"
+    },
+    {
+      "entity": "kunden",
+      "app_id": "6a0c45c8906835b1ad00f90a",
+      "path": "/rest/apps/6a0c45c8906835b1ad00f90a/records",
+      "allowed_fields": [
+        "nachname",
+        "telefon",
+        "email",
+        "strasse",
+        "hausnummer",
+        "plz",
+        "ort",
+        "vorname"
+      ],
+      "pow": true,
+      "pow_difficulty": 50000,
+      "title": "Kunden — Formular"
+    },
+    {
+      "entity": "buchungen",
+      "app_id": "6a0c45ce17d0f305b7c53697",
+      "path": "/rest/apps/6a0c45ce17d0f305b7c53697/records",
+      "allowed_fields": [
+        "gesamtpreis",
+        "anreise",
+        "abreise",
+        "unterkunftstyp",
+        "zusatzleistungen",
+        "status",
+        "notizen",
+        "preis_pro_nacht"
+      ],
+      "pow": true,
+      "pow_difficulty": 50000,
+      "title": "Buchungen — Formular"
+    }
+  ]
+}

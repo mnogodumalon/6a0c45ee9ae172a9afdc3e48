@@ -1,0 +1,8 @@
+- Katzen (katzen): katzenname[string/text], rasse[string/text], geburtsdatum[date/date], geschlecht[lookup/radio], farbe[string/text], impfstatus[lookup/select], besonderheiten[string/textarea], besitzer[applookup/select]
+  → besitzer links to app_id 6a0c45c8906835b1ad00f90a
+- Zusatzleistungen (zusatzleistungen): leistungsname[string/text], beschreibung[string/textarea], preis[number]
+- Kunden (kunden): nachname[string/text], telefon[string/tel], email[string/email], strasse[string/text], hausnummer[string/text], plz[string/text], ort[string/text], vorname[string/text]
+- Buchungen (buchungen): gesamtpreis[number], katze[applookup/select], anreise[date/date], abreise[date/date], unterkunftstyp[lookup/select], kunde[applookup/select], zusatzleistungen[multipleapplookup/select], status[lookup/select], notizen[string/textarea], preis_pro_nacht[number]
+  → katze links to app_id 6a0c45cdd4b461a56b9d6cb4
+  → kunde links to app_id 6a0c45c8906835b1ad00f90a
+  → zusatzleistungen links to app_id 6a0c45cd1be9f04e188b08dd
