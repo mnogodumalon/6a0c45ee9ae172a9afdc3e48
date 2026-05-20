@@ -27,6 +27,9 @@ import {
   IconBuildingCottage,
   IconClock,
   IconStar,
+  IconChevronRight,
+  IconDoorEnter,
+  IconDoorExit,
 } from '@tabler/icons-react';
 
 const APPGROUP_ID = '6a0c45ee9ae172a9afdc3e48';
@@ -141,6 +144,30 @@ export default function DashboardOverview() {
 
   return (
     <div className="space-y-6">
+      {/* Workflow Navigation */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <a href="#/intents/neue-buchung" className="flex items-center gap-4 bg-card border border-border border-l-4 border-l-primary rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow no-underline">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <IconDoorEnter size={20} className="text-primary" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-foreground text-sm">Neue Buchung anlegen</p>
+            <p className="text-xs text-muted-foreground truncate">Kunde, Katze & Aufenthalt in einem Schritt erfassen</p>
+          </div>
+          <IconChevronRight size={18} className="text-muted-foreground shrink-0" />
+        </a>
+        <a href="#/intents/abreise" className="flex items-center gap-4 bg-card border border-border border-l-4 border-l-primary rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow no-underline">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <IconDoorExit size={20} className="text-primary" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-foreground text-sm">Abreise abwickeln</p>
+            <p className="text-xs text-muted-foreground truncate">Aufenthalt prüfen, Gesamtpreis bestätigen & auschecken</p>
+          </div>
+          <IconChevronRight size={18} className="text-muted-foreground shrink-0" />
+        </a>
+      </div>
+
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>

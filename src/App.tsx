@@ -6,7 +6,6 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ErrorBusProvider } from '@/components/ErrorBus';
 import { Layout } from '@/components/Layout';
 import DashboardOverview from '@/pages/DashboardOverview';
-import { WorkflowPlaceholders } from '@/components/WorkflowPlaceholders';
 import AdminPage from '@/pages/AdminPage';
 import KatzenPage from '@/pages/KatzenPage';
 import ZusatzleistungenPage from '@/pages/ZusatzleistungenPage';
@@ -19,6 +18,8 @@ import PublicFormBuchungen from '@/pages/public/PublicForm_Buchungen';
 // <public:imports>
 // </public:imports>
 // <custom:imports>
+const NeueBuchungPage = lazy(() => import('@/pages/intents/NeueBuchungPage'));
+const AbreisePage = lazy(() => import('@/pages/intents/AbreisePage'));
 // </custom:imports>
 
 export default function App() {
@@ -35,13 +36,15 @@ export default function App() {
               {/* <public:routes> */}
               {/* </public:routes> */}
               <Route element={<Layout />}>
-                <Route index element={<><div className="mb-8"><WorkflowPlaceholders /></div><DashboardOverview /></>} />
+                <Route index element={<DashboardOverview />} />
                 <Route path="katzen" element={<KatzenPage />} />
                 <Route path="zusatzleistungen" element={<ZusatzleistungenPage />} />
                 <Route path="kunden" element={<KundenPage />} />
                 <Route path="buchungen" element={<BuchungenPage />} />
                 <Route path="admin" element={<AdminPage />} />
                 {/* <custom:routes> */}
+                <Route path="intents/neue-buchung" element={<Suspense fallback={null}><NeueBuchungPage /></Suspense>} />
+                <Route path="intents/abreise" element={<Suspense fallback={null}><AbreisePage /></Suspense>} />
                 {/* </custom:routes> */}
               </Route>
             </Routes>
