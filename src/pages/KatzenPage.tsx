@@ -230,6 +230,7 @@ export default function KatzenPage() {
         onClose={() => { setDialogOpen(false); setEditingRecord(null); }}
         onSubmit={editingRecord ? handleUpdate : handleCreate}
         defaultValues={editingRecord?.fields}
+        recordId={editingRecord?.record_id}
         kundenList={kundenList}
         enablePhotoScan={AI_PHOTO_SCAN['Katzen']}
         enablePhotoLocation={AI_PHOTO_LOCATION['Katzen']}

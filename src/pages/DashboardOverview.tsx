@@ -471,6 +471,7 @@ export default function DashboardOverview() {
           fetchAll();
         }}
         defaultValues={editBuchung?.fields}
+        recordId={editBuchung?.record_id}
         katzenList={katzen}
         kundenList={kunden}
         zusatzleistungenList={zusatzleistungen}

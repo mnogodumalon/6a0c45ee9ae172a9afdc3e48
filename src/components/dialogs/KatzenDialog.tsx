@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import type { ComputedContext } from '@/config/form-enhancements/types';
 import { applyFieldOrder, flattenFieldOrder, applyDefaults, evalComputed, numberInputProps, clampNumberValue, classifyComputed, extractApplookupRefs, mergeApplookupRefs, resolveApplookupRef } from '@/config/form-enhancements/types';
 import { formEnhancements, computedDeps, computedApplookupRefs } from '@/config/form-enhancements/Katzen';
+import { AttachmentsSection } from '@/components/AttachmentsSection';
 import { Textarea } from '@/components/ui/textarea';
 import { Combobox } from '@/components/Combobox';
 import { KundenDialog } from '@/components/dialogs/KundenDialog';
@@ -26,14 +27,27 @@ interface KatzenDialogProps {
   onClose: () => void;
   onSubmit: (fields: Katzen['fields']) => Promise<void>;
   defaultValues?: Katzen['fields'];
+  /** Record id when editing — enables the attachments section. Omit on create. */
+  recordId?: string;
   kundenList: Kunden[];
   enablePhotoScan?: boolean;
   enablePhotoLocation?: boolean;
 }
 
-export function KatzenDialog({ open, onClose, onSubmit, defaultValues, kundenList, enablePhotoScan = true, enablePhotoLocation = true }: KatzenDialogProps) {
+export function KatzenDialog({ open, onClose, onSubmit, defaultValues, recordId, kundenList, enablePhotoScan = true, enablePhotoLocation = true }: KatzenDialogProps) {
   const [fields, setFields] = useState<Partial<Katzen['fields']>>({});
   const [saving, setSaving] = useState(false);
+  // Dirty-tracking: in edit-mode the Speichern button is disabled until the
+  // user actually changes something. JSON.stringify is good enough for our
+  // fields (plain values + LookupValue objects + string arrays).
+  const isDirty = useMemo(() => {
+    if (!defaultValues) return true;  // create-mode: always allow submit
+    try {
+      return JSON.stringify(fields) !== JSON.stringify(defaultValues);
+    } catch {
+      return true;
+    }
+  }, [fields, defaultValues]);
   // Inline-Create state for "Kunden" target. The dropdown's
   // "+ Neuer …" option opens a sub-dialog; on submit we POST, add the new
   // record to the local `extraKunden` list, and select it in
@@ -259,7 +273,7 @@ export function KatzenDialog({ open, onClose, onSubmit, defaultValues, kundenLis
         <Label htmlFor="katzenname">Name der Katze</Label>
         <Input
           id="katzenname"
-          placeholder="z. B. Fluffy"
+          placeholder=""
           value={fields.katzenname ?? ''}
           onChange={e => setFields(f => ({ ...f, katzenname: e.target.value }))}
         />
@@ -270,7 +284,7 @@ export function KatzenDialog({ open, onClose, onSubmit, defaultValues, kundenLis
         <Label htmlFor="rasse">Rasse</Label>
         <Input
           id="rasse"
-          placeholder="z. B. Perserkatze"
+          placeholder=""
           value={fields.rasse ?? ''}
           onChange={e => setFields(f => ({ ...f, rasse: e.target.value }))}
         />
@@ -281,7 +295,7 @@ export function KatzenDialog({ open, onClose, onSubmit, defaultValues, kundenLis
         <Label htmlFor="geburtsdatum">Geburtsdatum</Label>
         <DatePicker
           id="geburtsdatum"
-          placeholder="Wann ist die Katze geboren?"
+          placeholder=""
           mode="date"
           value={fields.geburtsdatum ?? null}
           onChange={v => setFields(f => ({ ...f, geburtsdatum: v ?? undefined }))}
@@ -339,7 +353,7 @@ export function KatzenDialog({ open, onClose, onSubmit, defaultValues, kundenLis
         <Label htmlFor="farbe">Fellfarbe</Label>
         <Input
           id="farbe"
-          placeholder="z. B. Orange mit Weiß"
+          placeholder=""
           value={fields.farbe ?? ''}
           onChange={e => setFields(f => ({ ...f, farbe: e.target.value }))}
         />
@@ -409,7 +423,7 @@ export function KatzenDialog({ open, onClose, onSubmit, defaultValues, kundenLis
         <Label htmlFor="besonderheiten">Besonderheiten / Gesundheitshinweise</Label>
         <Textarea
           id="besonderheiten"
-          placeholder="Allergien, Verhalten, besondere Pflege..."
+          placeholder=""
           value={fields.besonderheiten ?? ''}
           onChange={e => setFields(f => ({ ...f, besonderheiten: e.target.value }))}
           rows={3}
@@ -789,12 +803,17 @@ export function KatzenDialog({ open, onClose, onSubmit, defaultValues, kundenLis
                 })()}
               </div>
             )}
+            {recordId && (
+              <div className="pt-2 border-t border-border">
+                <AttachmentsSection appId={APP_IDS.KATZEN} recordId={recordId} />
+              </div>
+            )}
           </div>
           <DialogFooter className="sticky bottom-0 border-t bg-background/95 backdrop-blur px-6 py-3 gap-2">
             <Button type="button" variant="outline" onClick={onClose}>Abbrechen</Button>
             <Button
               type="submit"
-              disabled={saving}
+              disabled={saving || !isDirty}
             >
               {saving ? 'Speichern...' : defaultValues ? 'Speichern' : 'Erstellen'}
             </Button>

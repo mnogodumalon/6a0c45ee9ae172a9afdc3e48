@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import type { ComputedContext } from '@/config/form-enhancements/types';
 import { applyFieldOrder, flattenFieldOrder, applyDefaults, evalComputed, numberInputProps, clampNumberValue, classifyComputed, extractApplookupRefs, mergeApplookupRefs, resolveApplookupRef } from '@/config/form-enhancements/types';
 import { formEnhancements, computedDeps, computedApplookupRefs } from '@/config/form-enhancements/Zusatzleistungen';
+import { AttachmentsSection } from '@/components/AttachmentsSection';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { IconCamera, IconChevronDown, IconCircleCheck, IconClipboard, IconFileText, IconLoader2, IconPhotoPlus, IconSparkles, IconUpload, IconX } from '@tabler/icons-react';
@@ -22,13 +23,26 @@ interface ZusatzleistungenDialogProps {
   onClose: () => void;
   onSubmit: (fields: Zusatzleistungen['fields']) => Promise<void>;
   defaultValues?: Zusatzleistungen['fields'];
+  /** Record id when editing — enables the attachments section. Omit on create. */
+  recordId?: string;
   enablePhotoScan?: boolean;
   enablePhotoLocation?: boolean;
 }
 
-export function ZusatzleistungenDialog({ open, onClose, onSubmit, defaultValues, enablePhotoScan = true, enablePhotoLocation = true }: ZusatzleistungenDialogProps) {
+export function ZusatzleistungenDialog({ open, onClose, onSubmit, defaultValues, recordId, enablePhotoScan = true, enablePhotoLocation = true }: ZusatzleistungenDialogProps) {
   const [fields, setFields] = useState<Partial<Zusatzleistungen['fields']>>({});
   const [saving, setSaving] = useState(false);
+  // Dirty-tracking: in edit-mode the Speichern button is disabled until the
+  // user actually changes something. JSON.stringify is good enough for our
+  // fields (plain values + LookupValue objects + string arrays).
+  const isDirty = useMemo(() => {
+    if (!defaultValues) return true;  // create-mode: always allow submit
+    try {
+      return JSON.stringify(fields) !== JSON.stringify(defaultValues);
+    } catch {
+      return true;
+    }
+  }, [fields, defaultValues]);
   const [aiOpen, setAiOpen] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [scanSuccess, setScanSuccess] = useState(false);
@@ -228,7 +242,7 @@ export function ZusatzleistungenDialog({ open, onClose, onSubmit, defaultValues,
         <Label htmlFor="leistungsname">Name der Leistung</Label>
         <Input
           id="leistungsname"
-          placeholder="z. B. Spezialfutter"
+          placeholder=""
           value={fields.leistungsname ?? ''}
           onChange={e => setFields(f => ({ ...f, leistungsname: e.target.value }))}
         />
@@ -239,7 +253,7 @@ export function ZusatzleistungenDialog({ open, onClose, onSubmit, defaultValues,
         <Label htmlFor="beschreibung">Beschreibung</Label>
         <Textarea
           id="beschreibung"
-          placeholder="Was ist in dieser Leistung enthalten?"
+          placeholder=""
           value={fields.beschreibung ?? ''}
           onChange={e => setFields(f => ({ ...f, beschreibung: e.target.value }))}
           rows={3}
@@ -254,7 +268,7 @@ export function ZusatzleistungenDialog({ open, onClose, onSubmit, defaultValues,
           type="number"
           step="any"
           {...numberInputProps(formEnhancements, 'preis')}
-          placeholder="z. B. 12,50"
+          placeholder=""
           value={fields.preis !== undefined ? fields.preis : (computedValues['preis'] ?? '')}
           onChange={e => setFields(f => ({ ...f, preis: clampNumberValue(formEnhancements, 'preis', e.target.value) }))}
         />
@@ -614,12 +628,17 @@ export function ZusatzleistungenDialog({ open, onClose, onSubmit, defaultValues,
                 })()}
               </div>
             )}
+            {recordId && (
+              <div className="pt-2 border-t border-border">
+                <AttachmentsSection appId={APP_IDS.ZUSATZLEISTUNGEN} recordId={recordId} />
+              </div>
+            )}
           </div>
           <DialogFooter className="sticky bottom-0 border-t bg-background/95 backdrop-blur px-6 py-3 gap-2">
             <Button type="button" variant="outline" onClick={onClose}>Abbrechen</Button>
             <Button
               type="submit"
-              disabled={saving}
+              disabled={saving || !isDirty}
             >
               {saving ? 'Speichern...' : defaultValues ? 'Speichern' : 'Erstellen'}
             </Button>

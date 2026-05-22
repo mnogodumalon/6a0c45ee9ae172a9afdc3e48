@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import type { ComputedContext } from '@/config/form-enhancements/types';
 import { applyFieldOrder, flattenFieldOrder, applyDefaults, evalComputed, numberInputProps, clampNumberValue, classifyComputed, extractApplookupRefs, mergeApplookupRefs, resolveApplookupRef } from '@/config/form-enhancements/types';
 import { formEnhancements, computedDeps, computedApplookupRefs } from '@/config/form-enhancements/Buchungen';
+import { AttachmentsSection } from '@/components/AttachmentsSection';
 import { Textarea } from '@/components/ui/textarea';
 import { Combobox, MultiCombobox } from '@/components/Combobox';
 import { KatzenDialog } from '@/components/dialogs/KatzenDialog';
@@ -28,6 +29,8 @@ interface BuchungenDialogProps {
   onClose: () => void;
   onSubmit: (fields: Buchungen['fields']) => Promise<void>;
   defaultValues?: Buchungen['fields'];
+  /** Record id when editing — enables the attachments section. Omit on create. */
+  recordId?: string;
   katzenList: Katzen[];
   kundenList: Kunden[];
   zusatzleistungenList: Zusatzleistungen[];
@@ -35,9 +38,20 @@ interface BuchungenDialogProps {
   enablePhotoLocation?: boolean;
 }
 
-export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, katzenList, kundenList, zusatzleistungenList, enablePhotoScan = true, enablePhotoLocation = true }: BuchungenDialogProps) {
+export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, recordId, katzenList, kundenList, zusatzleistungenList, enablePhotoScan = true, enablePhotoLocation = true }: BuchungenDialogProps) {
   const [fields, setFields] = useState<Partial<Buchungen['fields']>>({});
   const [saving, setSaving] = useState(false);
+  // Dirty-tracking: in edit-mode the Speichern button is disabled until the
+  // user actually changes something. JSON.stringify is good enough for our
+  // fields (plain values + LookupValue objects + string arrays).
+  const isDirty = useMemo(() => {
+    if (!defaultValues) return true;  // create-mode: always allow submit
+    try {
+      return JSON.stringify(fields) !== JSON.stringify(defaultValues);
+    } catch {
+      return true;
+    }
+  }, [fields, defaultValues]);
   // Inline-Create state for "Katzen" target. The dropdown's
   // "+ Neuer …" option opens a sub-dialog; on submit we POST, add the new
   // record to the local `extraKatzen` list, and select it in
@@ -314,7 +328,7 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, katzen
           type="number"
           step="any"
           {...numberInputProps(formEnhancements, 'gesamtpreis')}
-          placeholder="Wird automatisch berechnet"
+          placeholder=""
           value={fields.gesamtpreis !== undefined ? fields.gesamtpreis : (computedValues['gesamtpreis'] ?? '')}
           onChange={e => setFields(f => ({ ...f, gesamtpreis: clampNumberValue(formEnhancements, 'gesamtpreis', e.target.value) }))}
         />
@@ -325,7 +339,7 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, katzen
         <Label htmlFor="katze">Katze</Label>
         <Combobox
           id="katze"
-          placeholder="Welche Katze kommt?"
+          placeholder=""
           items={katzenListAll.map(r => ({
             id: r.record_id,
             label: String(r.fields.katzenname ?? r.record_id),
@@ -344,7 +358,7 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, katzen
         <Label htmlFor="anreise">Anreisedatum</Label>
         <DatePicker
           id="anreise"
-          placeholder="Wann kommt die Katze an?"
+          placeholder=""
           mode="date"
           value={fields.anreise ?? null}
           onChange={v => setFields(f => ({ ...f, anreise: v ?? undefined }))}
@@ -356,7 +370,7 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, katzen
         <Label htmlFor="abreise">Abreisedatum</Label>
         <DatePicker
           id="abreise"
-          placeholder="Wann reist die Katze ab?"
+          placeholder=""
           mode="date"
           value={fields.abreise ?? null}
           onChange={v => setFields(f => ({ ...f, abreise: v ?? undefined }))}
@@ -414,7 +428,7 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, katzen
         <Label htmlFor="kunde">Kunde</Label>
         <Combobox
           id="kunde"
-          placeholder="Welcher Kunde?"
+          placeholder=""
           items={kundenListAll.map(r => ({
             id: r.record_id,
             label: String(r.fields.nachname ?? r.record_id),
@@ -433,7 +447,7 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, katzen
         <Label htmlFor="zusatzleistungen">Zusatzleistungen</Label>
         <MultiCombobox
           id="zusatzleistungen"
-          placeholder="Welche Leistungen hinzufügen?"
+          placeholder=""
           items={zusatzleistungenListAll.map(r => ({
             id: r.record_id,
             label: String(r.fields.leistungsname ?? r.record_id),
@@ -524,7 +538,7 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, katzen
         <Label htmlFor="notizen">Notizen</Label>
         <Textarea
           id="notizen"
-          placeholder="Spezialwünsche, Fütterungsplan, Kontakt vor Anreise..."
+          placeholder=""
           value={fields.notizen ?? ''}
           onChange={e => setFields(f => ({ ...f, notizen: e.target.value }))}
           rows={3}
@@ -539,7 +553,7 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, katzen
           type="number"
           step="any"
           {...numberInputProps(formEnhancements, 'preis_pro_nacht')}
-          placeholder="z. B. 45,00"
+          placeholder=""
           value={fields.preis_pro_nacht !== undefined ? fields.preis_pro_nacht : (computedValues['preis_pro_nacht'] ?? '')}
           onChange={e => setFields(f => ({ ...f, preis_pro_nacht: clampNumberValue(formEnhancements, 'preis_pro_nacht', e.target.value) }))}
         />
@@ -899,12 +913,17 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, katzen
                 })()}
               </div>
             )}
+            {recordId && (
+              <div className="pt-2 border-t border-border">
+                <AttachmentsSection appId={APP_IDS.BUCHUNGEN} recordId={recordId} />
+              </div>
+            )}
           </div>
           <DialogFooter className="sticky bottom-0 border-t bg-background/95 backdrop-blur px-6 py-3 gap-2">
             <Button type="button" variant="outline" onClick={onClose}>Abbrechen</Button>
             <Button
               type="submit"
-              disabled={saving}
+              disabled={saving || !isDirty}
             >
               {saving ? 'Speichern...' : defaultValues ? 'Speichern' : 'Erstellen'}
             </Button>

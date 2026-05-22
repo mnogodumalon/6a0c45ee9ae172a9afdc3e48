@@ -262,6 +262,7 @@ export default function BuchungenPage() {
         onClose={() => { setDialogOpen(false); setEditingRecord(null); }}
         onSubmit={editingRecord ? handleUpdate : handleCreate}
         defaultValues={editingRecord?.fields}
+        recordId={editingRecord?.record_id}
         katzenList={katzenList}
         kundenList={kundenList}
         zusatzleistungenList={zusatzleistungenList}
