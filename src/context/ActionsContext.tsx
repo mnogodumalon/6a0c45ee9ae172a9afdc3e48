@@ -20,6 +20,8 @@ interface ActionsContextType {
   runningActionId: string | null;
   devMode: boolean;
   setDevMode: (v: boolean) => void;
+  betaMode: boolean;
+  setBetaMode: (v: boolean) => void;
   showActionCode: (action: Action) => void;
   deleteAction: (action: Action) => Promise<void>;
   inputFormAction: Action | null;
@@ -33,6 +35,16 @@ interface ActionsContextType {
 }
 
 const ActionsContext = createContext<ActionsContextType | null>(null);
+
+function readChannelCookie(): boolean {
+  if (typeof document === 'undefined') return false;
+  return document.cookie.split('; ').some(c => c === 'channel=beta');
+}
+
+function writeChannelCookie(beta: boolean): void {
+  const value = beta ? 'beta' : 'stable';
+  document.cookie = `channel=${value}; path=/; max-age=31536000; SameSite=Lax`;
+}
 
 export function useActions() {
   const ctx = useContext(ActionsContext);
@@ -70,6 +82,15 @@ export function ActionsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try { localStorage.setItem('developer-mode', String(devMode)); } catch {}
   }, [devMode]);
+
+  const [betaMode, setBetaModeState] = useState(() => {
+    try { return readChannelCookie(); } catch { return false; }
+  });
+
+  const setBetaMode = useCallback((v: boolean) => {
+    setBetaModeState(v);
+    try { writeChannelCookie(v); } catch {}
+  }, []);
 
   const refreshActions = useCallback(async () => {
     try {
@@ -296,7 +317,7 @@ export function ActionsProvider({ children }: { children: ReactNode }) {
 
   return (
     <ActionsContext.Provider
-      value={{ actions, chatOpen, setChatOpen, messages, chatLoading, runningActionId, runAction, sendMessage, devMode, setDevMode, showActionCode, deleteAction: deleteActionFn, inputFormAction, inputFormOptions, submitActionInputs, cancelInputForm, files, filesByAction, downloadFile, deleteAppAttachment: deleteAppAttachmentFn }}
+      value={{ actions, chatOpen, setChatOpen, messages, chatLoading, runningActionId, runAction, sendMessage, devMode, setDevMode, betaMode, setBetaMode, showActionCode, deleteAction: deleteActionFn, inputFormAction, inputFormOptions, submitActionInputs, cancelInputForm, files, filesByAction, downloadFile, deleteAppAttachment: deleteAppAttachmentFn }}
     >
       {children}
     </ActionsContext.Provider>

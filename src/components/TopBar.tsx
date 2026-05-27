@@ -46,7 +46,7 @@ const SORT_LABELS: Record<SortMode, string> = {
 };
 
 export function TopBar() {
-  const { devMode, setDevMode } = useActions();
+  const { devMode, setDevMode, betaMode, setBetaMode } = useActions();
   const [profile, setProfile] = useState<HeaderProfile | null>(null);
   const [appGroups, setAppGroups] = useState<AppGroupInfo[]>([]);
   const [appsOpen, setAppsOpen] = useState(false);
@@ -245,7 +245,7 @@ export function TopBar() {
                 className="flex items-center gap-2 px-2 py-2 rounded-2xl text-base text-[#374151] hover:bg-accent/50 transition-colors"
               >
                 <IconFlask size={20} className="text-[#374151] shrink-0" />
-                <span>Klar Lab (Beta Features)</span>
+                <span>Klar Lab</span>
               </a>
             </div>
           </div>
@@ -292,6 +292,15 @@ export function TopBar() {
                   className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
                 />
                 <span className="text-sm text-foreground">Entwickler</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer mt-2">
+                <input
+                  type="checkbox"
+                  checked={betaMode}
+                  onChange={e => setBetaMode(e.target.checked)}
+                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                />
+                <span className="text-sm text-foreground">Beta Features</span>
               </label>
             </div>
           </div>
