@@ -105,7 +105,7 @@ export function ActionInputDialog({ action, schema, options, onSubmit, onCancel 
           </SelectTrigger>
           <SelectContent>
             {prop.enum.map(opt => (
-              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+              <SelectItem key={opt} value={opt}>{prop['x-enum-descriptions']?.[opt] ?? opt}</SelectItem>
             ))}
           </SelectContent>
         </Select>

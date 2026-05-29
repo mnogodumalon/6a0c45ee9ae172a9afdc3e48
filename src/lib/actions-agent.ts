@@ -9,6 +9,7 @@ export interface InputSchemaProperty {
   enum?: string[];
   default?: unknown;
   examples?: unknown[];
+  "x-enum-descriptions"?: Record<string, string>;
 }
 
 export interface InputSchema {
