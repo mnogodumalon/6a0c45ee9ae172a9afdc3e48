@@ -22,6 +22,8 @@ import PublicFormBuchungen from '@/pages/public/PublicForm_Buchungen';
 // <public:imports>
 // </public:imports>
 // <custom:imports>
+const NeueBuchungPage = lazy(() => import('@/pages/intents/NeueBuchungPage'));
+const AbreiseAbwickelnPage = lazy(() => import('@/pages/intents/AbreiseAbwickelnPage'));
 // </custom:imports>
 
 export default function App() {
@@ -49,6 +51,8 @@ export default function App() {
                 <Route path="buchungen/:id" element={<BuchungenDetailPage />} />
                 <Route path="admin" element={<AdminPage />} />
                 {/* <custom:routes> */}
+                <Route path="intents/neue-buchung" element={<Suspense fallback={null}><NeueBuchungPage /></Suspense>} />
+                <Route path="intents/abreise-abwickeln" element={<Suspense fallback={null}><AbreiseAbwickelnPage /></Suspense>} />
                 {/* </custom:routes> */}
               </Route>
             </Routes>
