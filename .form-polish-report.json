@@ -1,0 +1,28 @@
+{
+  "entities": {
+    "Zusatzleistungen": {
+      "placeholders_set": 3,
+      "defaults_keys": [],
+      "computed_keys": [],
+      "reason": "Reine Stammdaten mit Preis — keine Mengen, Daten oder applookup-Ketten. Nichts berechenbar. fieldOrder nur zur Strukturierung."
+    },
+    "Kunden": {
+      "placeholders_set": 8,
+      "defaults_keys": [],
+      "computed_keys": [],
+      "reason": "Kontakt- und Adressdaten — keine numerischen oder Datums-Felder, keine Berechnungen möglich. Nur fieldOrder mit logischen Paaren (Adresse, Namen)."
+    },
+    "Katzen": {
+      "placeholders_set": 8,
+      "defaults_keys": ["geschlecht"],
+      "computed_keys": [],
+      "reason": "Tier-Stammdaten mit Geburtsdatum, applookup auf Kunden (Besitzer), Lookups für Geschlecht/Impfstatus. Ein isoliertes Datums-Feld ohne Partner. Keine Preise, keine applookup-Ketten zu Preis-Feldern. Nur fieldOrder + geschlecht-Default."
+    },
+    "Buchungen": {
+      "placeholders_set": 10,
+      "defaults_keys": ["anreise", "abreise", "status"],
+      "computed_keys": ["_buchung_dauer_nächte", "gesamtpreis"],
+      "reason": "Aufenthalts-Entity (Datumspaar anreise/abreise + Preis). (a.2) PFLICHT — virtueller Dauer-Key '_buchung_dauer_nächte' als Hinweis. (c) Aufenthalts-Heuristik — Entity enthält 'Buchung', Datumspaar vorhanden, gesamtpreis-Feld vorhanden, multipleapplookup auf Zusatzleistungen mit preis-Target: MODUS-2 Formel für gesamtpreis = nacht_rate × nächte + summe(zusatzleistungen.preis) via ctx.sumOver."
+    }
+  }
+}

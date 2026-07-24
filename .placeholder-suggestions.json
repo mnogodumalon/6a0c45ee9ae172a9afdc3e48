@@ -1,0 +1,39 @@
+{
+  "ZusatzleistungenDialog.tsx": {
+    "leistungsname": "z. B. Fütterung, Spielzeit, Medikamente",
+    "beschreibung": "Leistungsbeschreibung, Besonderheiten...",
+    "preis": "z. B. 12,50"
+  },
+  "KundenDialog.tsx": {
+    "nachname": "z. B. Müller",
+    "telefon": "z. B. +49 123 456789",
+    "email": "z. B. max@example.com",
+    "strasse": "z. B. Hauptstraße",
+    "hausnummer": "z. B. 42",
+    "plz": "z. B. 10115",
+    "ort": "z. B. Berlin",
+    "vorname": "z. B. Max"
+  },
+  "KatzenDialog.tsx": {
+    "katzenname": "z. B. Whiskers, Luna, Felix",
+    "rasse": "z. B. Britisch Kurzhaar",
+    "geburtsdatum": "Wann wurde die Katze geboren?",
+    "geschlecht": "z. B. Weiblich, Männlich",
+    "farbe": "z. B. Orange, Schwarz, Weiß",
+    "impfstatus": "Welcher Impfstatus liegt vor?",
+    "besonderheiten": "Erkrankungen, Verhalten, spezielle Bedürfnisse...",
+    "besitzer": "Welcher Kunde ist der Besitzer?"
+  },
+  "BuchungenDialog.tsx": {
+    "gesamtpreis": "Wird berechnet",
+    "katze": "Welche Katze kommt zu uns?",
+    "anreise": "Wann kommt die Katze an?",
+    "abreise": "Wann reist die Katze ab?",
+    "unterkunftstyp": "z. B. Standard, Komfort, Suite",
+    "kunde": "Wer ist der Bucher?",
+    "zusatzleistungen": "Zusatzleistungen wählen",
+    "status": "z. B. Angefragt, Bestätigt",
+    "notizen": "Besondere Wünsche, Fütterungshinweise, Verhaltensnotizen...",
+    "preis_pro_nacht": "z. B. 25,00"
+  }
+}
