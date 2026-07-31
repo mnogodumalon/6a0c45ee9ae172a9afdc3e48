@@ -13,7 +13,7 @@ export const formEnhancements: FormEnhancements = {
   },
   computed: {
     '_buchung_dauer_nächte': { kind: 'dateDiff', from: 'anreise', to: 'abreise', unit: 'days' },
-    'gesamtpreis': (fields, ctx) => {
+    'gesamtpreis': (_fields, ctx) => {
       const nachtRate = Number(ctx.field('preis_pro_nacht') ?? 0);
       const nights = ctx.dateDiff('anreise', 'abreise') ?? 0;
       const basis = nachtRate * nights;

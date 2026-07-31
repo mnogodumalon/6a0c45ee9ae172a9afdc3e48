@@ -29,7 +29,7 @@ export function BuchungenDetails({
   kundenList,
   onOpenKunden,
   zusatzleistungenList,
-  onOpenZusatzleistungen,
+  onOpenZusatzleistungen: _onOpenZusatzleistungen,
 }: BuchungenDetailsProps) {
   const katzeTarget = katzenList.find(r => r.record_id === extractRecordId(record.fields.katze));
   const kundeTarget = kundenList.find(r => r.record_id === extractRecordId(record.fields.kunde));
