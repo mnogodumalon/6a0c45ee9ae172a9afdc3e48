@@ -75,6 +75,18 @@ export interface CallApiOptions {
   silent?: boolean;
 }
 
+/** What the create and update helpers resolve to. Same `record_id`
+ *  the read helpers expose, so the whole family behaves alike — the
+ *  raw REST answer only
+ *  carries `id`, and code that guessed (e.g. Object.keys(res)[0]) built
+ *  `/records/id` and got a 400 on the next write. */
+export interface MutationResult {
+  record_id: string;
+  id: string;
+  fields: Record<string, any>;
+  [key: string]: any;
+}
+
 async function callApi(method: string, endpoint: string, data?: any, options?: CallApiOptions) {
   const silent = options?.silent === true;
   let response: Response;
@@ -319,20 +331,23 @@ export class LivingAppsService {
   static async getZusatzleistungen(): Promise<Zusatzleistungen[]> {
     const data = await callApi('GET', `/apps/${APP_IDS.ZUSATZLEISTUNGEN}/records`);
     const records = Object.entries(data).map(([id, rec]: [string, any]) => ({
-      record_id: id, ...rec
+      record_id: id, ...rec,
+      createdat: rec.created_at ?? '', updatedat: rec.updated_at ?? null,
     })) as Zusatzleistungen[];
     return enrichLookupFields(records, 'zusatzleistungen');
   }
   static async getZusatzleistungenEntry(id: string): Promise<Zusatzleistungen | undefined> {
     const data = await callApi('GET', `/apps/${APP_IDS.ZUSATZLEISTUNGEN}/records/${id}`);
-    const record = { record_id: data.id, ...data } as Zusatzleistungen;
+    const record = { record_id: data.id, ...data, createdat: data.created_at ?? '', updatedat: data.updated_at ?? null } as Zusatzleistungen;
     return enrichLookupFields([record], 'zusatzleistungen')[0];
   }
-  static async createZusatzleistungenEntry(fields: CreateZusatzleistungen) {
-    return callApi('POST', `/apps/${APP_IDS.ZUSATZLEISTUNGEN}/records`, { fields: cleanFieldsForApi(fields as any, 'zusatzleistungen') });
+  static async createZusatzleistungenEntry(fields: CreateZusatzleistungen): Promise<MutationResult> {
+    const data = await callApi('POST', `/apps/${APP_IDS.ZUSATZLEISTUNGEN}/records`, { fields: cleanFieldsForApi(fields as any, 'zusatzleistungen') });
+    return { ...data, record_id: data.id };
   }
-  static async updateZusatzleistungenEntry(id: string, fields: Partial<CreateZusatzleistungen>) {
-    return callApi('PATCH', `/apps/${APP_IDS.ZUSATZLEISTUNGEN}/records/${id}`, { fields: cleanFieldsForApi(fields as any, 'zusatzleistungen') });
+  static async updateZusatzleistungenEntry(id: string, fields: Partial<CreateZusatzleistungen>): Promise<MutationResult> {
+    const data = await callApi('PATCH', `/apps/${APP_IDS.ZUSATZLEISTUNGEN}/records/${id}`, { fields: cleanFieldsForApi(fields as any, 'zusatzleistungen') });
+    return { ...data, record_id: data.id };
   }
   static async deleteZusatzleistungenEntry(id: string) {
     return callApi('DELETE', `/apps/${APP_IDS.ZUSATZLEISTUNGEN}/records/${id}`);
@@ -342,20 +357,23 @@ export class LivingAppsService {
   static async getKunden(): Promise<Kunden[]> {
     const data = await callApi('GET', `/apps/${APP_IDS.KUNDEN}/records`);
     const records = Object.entries(data).map(([id, rec]: [string, any]) => ({
-      record_id: id, ...rec
+      record_id: id, ...rec,
+      createdat: rec.created_at ?? '', updatedat: rec.updated_at ?? null,
     })) as Kunden[];
     return enrichLookupFields(records, 'kunden');
   }
   static async getKundenEntry(id: string): Promise<Kunden | undefined> {
     const data = await callApi('GET', `/apps/${APP_IDS.KUNDEN}/records/${id}`);
-    const record = { record_id: data.id, ...data } as Kunden;
+    const record = { record_id: data.id, ...data, createdat: data.created_at ?? '', updatedat: data.updated_at ?? null } as Kunden;
     return enrichLookupFields([record], 'kunden')[0];
   }
-  static async createKundenEntry(fields: CreateKunden) {
-    return callApi('POST', `/apps/${APP_IDS.KUNDEN}/records`, { fields: cleanFieldsForApi(fields as any, 'kunden') });
+  static async createKundenEntry(fields: CreateKunden): Promise<MutationResult> {
+    const data = await callApi('POST', `/apps/${APP_IDS.KUNDEN}/records`, { fields: cleanFieldsForApi(fields as any, 'kunden') });
+    return { ...data, record_id: data.id };
   }
-  static async updateKundenEntry(id: string, fields: Partial<CreateKunden>) {
-    return callApi('PATCH', `/apps/${APP_IDS.KUNDEN}/records/${id}`, { fields: cleanFieldsForApi(fields as any, 'kunden') });
+  static async updateKundenEntry(id: string, fields: Partial<CreateKunden>): Promise<MutationResult> {
+    const data = await callApi('PATCH', `/apps/${APP_IDS.KUNDEN}/records/${id}`, { fields: cleanFieldsForApi(fields as any, 'kunden') });
+    return { ...data, record_id: data.id };
   }
   static async deleteKundenEntry(id: string) {
     return callApi('DELETE', `/apps/${APP_IDS.KUNDEN}/records/${id}`);
@@ -365,20 +383,23 @@ export class LivingAppsService {
   static async getKatzen(): Promise<Katzen[]> {
     const data = await callApi('GET', `/apps/${APP_IDS.KATZEN}/records`);
     const records = Object.entries(data).map(([id, rec]: [string, any]) => ({
-      record_id: id, ...rec
+      record_id: id, ...rec,
+      createdat: rec.created_at ?? '', updatedat: rec.updated_at ?? null,
     })) as Katzen[];
     return enrichLookupFields(records, 'katzen');
   }
   static async getKatzenEntry(id: string): Promise<Katzen | undefined> {
     const data = await callApi('GET', `/apps/${APP_IDS.KATZEN}/records/${id}`);
-    const record = { record_id: data.id, ...data } as Katzen;
+    const record = { record_id: data.id, ...data, createdat: data.created_at ?? '', updatedat: data.updated_at ?? null } as Katzen;
     return enrichLookupFields([record], 'katzen')[0];
   }
-  static async createKatzenEntry(fields: CreateKatzen) {
-    return callApi('POST', `/apps/${APP_IDS.KATZEN}/records`, { fields: cleanFieldsForApi(fields as any, 'katzen') });
+  static async createKatzenEntry(fields: CreateKatzen): Promise<MutationResult> {
+    const data = await callApi('POST', `/apps/${APP_IDS.KATZEN}/records`, { fields: cleanFieldsForApi(fields as any, 'katzen') });
+    return { ...data, record_id: data.id };
   }
-  static async updateKatzenEntry(id: string, fields: Partial<CreateKatzen>) {
-    return callApi('PATCH', `/apps/${APP_IDS.KATZEN}/records/${id}`, { fields: cleanFieldsForApi(fields as any, 'katzen') });
+  static async updateKatzenEntry(id: string, fields: Partial<CreateKatzen>): Promise<MutationResult> {
+    const data = await callApi('PATCH', `/apps/${APP_IDS.KATZEN}/records/${id}`, { fields: cleanFieldsForApi(fields as any, 'katzen') });
+    return { ...data, record_id: data.id };
   }
   static async deleteKatzenEntry(id: string) {
     return callApi('DELETE', `/apps/${APP_IDS.KATZEN}/records/${id}`);
@@ -388,20 +409,23 @@ export class LivingAppsService {
   static async getBuchungen(): Promise<Buchungen[]> {
     const data = await callApi('GET', `/apps/${APP_IDS.BUCHUNGEN}/records`);
     const records = Object.entries(data).map(([id, rec]: [string, any]) => ({
-      record_id: id, ...rec
+      record_id: id, ...rec,
+      createdat: rec.created_at ?? '', updatedat: rec.updated_at ?? null,
     })) as Buchungen[];
     return enrichLookupFields(records, 'buchungen');
   }
   static async getBuchungenEntry(id: string): Promise<Buchungen | undefined> {
     const data = await callApi('GET', `/apps/${APP_IDS.BUCHUNGEN}/records/${id}`);
-    const record = { record_id: data.id, ...data } as Buchungen;
+    const record = { record_id: data.id, ...data, createdat: data.created_at ?? '', updatedat: data.updated_at ?? null } as Buchungen;
     return enrichLookupFields([record], 'buchungen')[0];
   }
-  static async createBuchungenEntry(fields: CreateBuchungen) {
-    return callApi('POST', `/apps/${APP_IDS.BUCHUNGEN}/records`, { fields: cleanFieldsForApi(fields as any, 'buchungen') });
+  static async createBuchungenEntry(fields: CreateBuchungen): Promise<MutationResult> {
+    const data = await callApi('POST', `/apps/${APP_IDS.BUCHUNGEN}/records`, { fields: cleanFieldsForApi(fields as any, 'buchungen') });
+    return { ...data, record_id: data.id };
   }
-  static async updateBuchungenEntry(id: string, fields: Partial<CreateBuchungen>) {
-    return callApi('PATCH', `/apps/${APP_IDS.BUCHUNGEN}/records/${id}`, { fields: cleanFieldsForApi(fields as any, 'buchungen') });
+  static async updateBuchungenEntry(id: string, fields: Partial<CreateBuchungen>): Promise<MutationResult> {
+    const data = await callApi('PATCH', `/apps/${APP_IDS.BUCHUNGEN}/records/${id}`, { fields: cleanFieldsForApi(fields as any, 'buchungen') });
+    return { ...data, record_id: data.id };
   }
   static async deleteBuchungenEntry(id: string) {
     return callApi('DELETE', `/apps/${APP_IDS.BUCHUNGEN}/records/${id}`);

@@ -1,3 +1,18 @@
+/**
+ * KatzenDialog — pre-generated create/edit dialog for Katzen.
+ *
+ * Props: open, onClose, onSubmit(fields) => Promise<void>, defaultValues?,
+ * recordId? (pass when EDITING — enables the attachments section),
+ * kundenList (full hook array — resolves the Kunden applookup),
+ * enablePhotoScan?, enablePhotoLocation?.
+ *
+ * defaultValues is SHAPE-TOLERANT and its prop type is the EXPORTED
+ * KatzenDialogDefaults — NOT the entity field type: lookup fields accept
+ * the bare KEY string (or LookupValue), applookup fields the bare record id
+ * (or record URL); the dialog normalizes. Type prefill STATE with the export:
+ *  ❌ useState<Partial<Katzen['fields']>>({ … })   // LookupValue fields reject string prefills (TS2322)
+ *  ✓ useState<KatzenDialogDefaults | undefined>(undefined)
+ */
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import type { Katzen, Kunden, LookupValue } from '@/types/app';
 import { APP_IDS, LOOKUP_OPTIONS } from '@/types/app';
@@ -22,6 +37,12 @@ import { IconAlertCircle, IconCamera, IconChevronDown, IconCircleCheck, IconClip
 import { fileToDataUri, extractFromInput, extractPhotoMeta, reverseGeocode } from '@/lib/ai';
 import { lookupKey } from '@/lib/formatters';
 
+/** Widened prefill type for KatzenDialog.defaultValues — see file header. */
+export type KatzenDialogDefaults = Omit<Katzen['fields'], 'geschlecht' | 'impfstatus'> & {
+    geschlecht?: LookupValue | string;
+    impfstatus?: LookupValue | string;
+  };
+
 interface KatzenDialogProps {
   open: boolean;
   onClose: () => void;
@@ -29,10 +50,7 @@ interface KatzenDialogProps {
   /** SHAPE-TOLERANT: lookup fields accept the bare key (string) or the
    *  LookupValue object; applookup fields the bare record id or the full
    *  record URL — the dialog normalizes both. */
-  defaultValues?: Omit<Katzen['fields'], 'geschlecht' | 'impfstatus'> & {
-    geschlecht?: LookupValue | string;
-    impfstatus?: LookupValue | string;
-  };
+  defaultValues?: KatzenDialogDefaults;
   /** Record id when editing — enables the attachments section. Omit on create. */
   recordId?: string;
   kundenList: Kunden[];
@@ -328,7 +346,7 @@ export function KatzenDialog({ open, onClose, onSubmit, defaultValues, recordId,
         <Label htmlFor="katzenname">Name der Katze <span className="text-destructive" aria-hidden="true">*</span></Label>
         <Input
           id="katzenname"
-          placeholder="z. B. Whiskers, Luna, Felix"
+          placeholder=""
           value={fields.katzenname ?? ''}
           onChange={e => setFields(f => ({ ...f, katzenname: e.target.value }))}
           required
@@ -343,7 +361,7 @@ export function KatzenDialog({ open, onClose, onSubmit, defaultValues, recordId,
         <Label htmlFor="rasse">Rasse</Label>
         <Input
           id="rasse"
-          placeholder="z. B. Britisch Kurzhaar"
+          placeholder=""
           value={fields.rasse ?? ''}
           onChange={e => setFields(f => ({ ...f, rasse: e.target.value }))}
         />
@@ -354,7 +372,7 @@ export function KatzenDialog({ open, onClose, onSubmit, defaultValues, recordId,
         <Label htmlFor="geburtsdatum">Geburtsdatum</Label>
         <DatePicker
           id="geburtsdatum"
-          placeholder="Wann wurde die Katze geboren?"
+          placeholder=""
           mode="date"
           value={fields.geburtsdatum ?? null}
           onChange={v => setFields(f => ({ ...f, geburtsdatum: v ?? undefined }))}
@@ -412,7 +430,7 @@ export function KatzenDialog({ open, onClose, onSubmit, defaultValues, recordId,
         <Label htmlFor="farbe">Fellfarbe</Label>
         <Input
           id="farbe"
-          placeholder="z. B. Orange, Schwarz, Weiß"
+          placeholder=""
           value={fields.farbe ?? ''}
           onChange={e => setFields(f => ({ ...f, farbe: e.target.value }))}
         />
@@ -482,7 +500,7 @@ export function KatzenDialog({ open, onClose, onSubmit, defaultValues, recordId,
         <Label htmlFor="besonderheiten">Besonderheiten / Gesundheitshinweise</Label>
         <Textarea
           id="besonderheiten"
-          placeholder="Erkrankungen, Verhalten, spezielle Bedürfnisse..."
+          placeholder=""
           value={fields.besonderheiten ?? ''}
           onChange={e => setFields(f => ({ ...f, besonderheiten: e.target.value }))}
           rows={3}
@@ -494,7 +512,7 @@ export function KatzenDialog({ open, onClose, onSubmit, defaultValues, recordId,
         <Label htmlFor="besitzer">Besitzer <span className="text-destructive" aria-hidden="true">*</span></Label>
         <Combobox
           id="besitzer"
-          placeholder="Welcher Kunde ist der Besitzer?"
+          placeholder=""
           items={kundenListAll.map(r => ({
             id: r.record_id,
             label: String(r.fields.nachname ?? r.record_id),

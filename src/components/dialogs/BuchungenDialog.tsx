@@ -1,3 +1,20 @@
+/**
+ * BuchungenDialog — pre-generated create/edit dialog for Buchungen.
+ *
+ * Props: open, onClose, onSubmit(fields) => Promise<void>, defaultValues?,
+ * recordId? (pass when EDITING — enables the attachments section),
+ * katzenList (full hook array — resolves the Katzen applookup),
+ * kundenList (full hook array — resolves the Kunden applookup),
+ * zusatzleistungenList (full hook array — resolves the Zusatzleistungen applookup),
+ * enablePhotoScan?, enablePhotoLocation?.
+ *
+ * defaultValues is SHAPE-TOLERANT and its prop type is the EXPORTED
+ * BuchungenDialogDefaults — NOT the entity field type: lookup fields accept
+ * the bare KEY string (or LookupValue), applookup fields the bare record id
+ * (or record URL); the dialog normalizes. Type prefill STATE with the export:
+ *  ❌ useState<Partial<Buchungen['fields']>>({ … })   // LookupValue fields reject string prefills (TS2322)
+ *  ✓ useState<BuchungenDialogDefaults | undefined>(undefined)
+ */
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import type { Buchungen, Katzen, Kunden, Zusatzleistungen, LookupValue } from '@/types/app';
 import { APP_IDS, LOOKUP_OPTIONS } from '@/types/app';
@@ -24,6 +41,12 @@ import { IconAlertCircle, IconCamera, IconChevronDown, IconCircleCheck, IconClip
 import { fileToDataUri, extractFromInput, extractPhotoMeta, reverseGeocode } from '@/lib/ai';
 import { lookupKey } from '@/lib/formatters';
 
+/** Widened prefill type for BuchungenDialog.defaultValues — see file header. */
+export type BuchungenDialogDefaults = Omit<Buchungen['fields'], 'unterkunftstyp' | 'status'> & {
+    unterkunftstyp?: LookupValue | string;
+    status?: LookupValue | string;
+  };
+
 interface BuchungenDialogProps {
   open: boolean;
   onClose: () => void;
@@ -31,10 +54,7 @@ interface BuchungenDialogProps {
   /** SHAPE-TOLERANT: lookup fields accept the bare key (string) or the
    *  LookupValue object; applookup fields the bare record id or the full
    *  record URL — the dialog normalizes both. */
-  defaultValues?: Omit<Buchungen['fields'], 'unterkunftstyp' | 'status'> & {
-    unterkunftstyp?: LookupValue | string;
-    status?: LookupValue | string;
-  };
+  defaultValues?: BuchungenDialogDefaults;
   /** Record id when editing — enables the attachments section. Omit on create. */
   recordId?: string;
   katzenList: Katzen[];
@@ -300,7 +320,7 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, record
         }
       }
       const photoContext = contextParts.length ? contextParts.join('\n') : undefined;
-      const schema = `{\n  "gesamtpreis": number | null, // Gesamtpreis (€)\n  "katze": string | null, // Display name from Katzen (see <available-records>)\n  "anreise": string | null, // YYYY-MM-DD\n  "abreise": string | null, // YYYY-MM-DD\n  "unterkunftstyp": LookupValue | null, // Unterkunftstyp (select one key: "standard" | "komfort" | "suite") mapping: standard=Standardzimmer, komfort=Komfortzimmer, suite=Suite\n  "kunde": string | null, // Display name from Kunden (see <available-records>)\n  "zusatzleistungen": string | null, // Display name from Zusatzleistungen (see <available-records>)\n  "status": LookupValue | null, // Buchungsstatus (select one key: "angefragt" | "bestaetigt" | "eingecheckt" | "ausgecheckt" | "storniert") mapping: angefragt=Angefragt, bestaetigt=Bestätigt, eingecheckt=Eingecheckt, ausgecheckt=Ausgecheckt, storniert=Storniert\n  "notizen": string | null, // Notizen\n  "preis_pro_nacht": number | null, // Preis pro Nacht (€)\n}`;
+      const schema = `{\n  "gesamtpreis": number | null, // Gesamtpreis (€)\n  "katze": string | null, // Display name from Katzen (see <available-records>)\n  "anreise": string | null, // YYYY-MM-DD\n  "abreise": string | null, // YYYY-MM-DD\n  "unterkunftstyp": LookupValue | null, // Unterkunftstyp (select one key: "standard" | "komfort" | "suite") mapping: standard=Standardzimmer, komfort=Komfortzimmer, suite=Suite\n  "kunde": string | null, // Display name from Kunden (see <available-records>)\n  "zusatzleistungen": string[] | null, // Display names from Zusatzleistungen, one per referenced record (see <available-records>)\n  "status": LookupValue | null, // Buchungsstatus (select one key: "angefragt" | "bestaetigt" | "eingecheckt" | "ausgecheckt" | "storniert") mapping: angefragt=Angefragt, bestaetigt=Bestätigt, eingecheckt=Eingecheckt, ausgecheckt=Ausgecheckt, storniert=Storniert\n  "notizen": string | null, // Notizen\n  "preis_pro_nacht": number | null, // Preis pro Nacht (€)\n}`;
       const raw = await extractFromInput<Record<string, unknown>>(schema, {
         dataUri: uri,
         userText: aiText.trim() || undefined,
@@ -328,10 +348,13 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, record
           const kundeMatch = kundenList.find(r => matchName(kundeName!, [[r.fields.vorname ?? '', r.fields.nachname ?? ''].filter(Boolean).join(' ')]));
           if (kundeMatch) merged['kunde'] = createRecordUrl(APP_IDS.KUNDEN, kundeMatch.record_id);
         }
-        const zusatzleistungenName = raw['zusatzleistungen'] as string | null;
-        if (zusatzleistungenName) {
-          const zusatzleistungenMatch = zusatzleistungenList.find(r => matchName(zusatzleistungenName!, [String(r.fields.leistungsname ?? '')]));
-          if (zusatzleistungenMatch) merged['zusatzleistungen'] = createRecordUrl(APP_IDS.ZUSATZLEISTUNGEN, zusatzleistungenMatch.record_id);
+        const zusatzleistungenNames = raw['zusatzleistungen'];
+        if (Array.isArray(zusatzleistungenNames) && zusatzleistungenNames.length > 0) {
+          const zusatzleistungenUrls = (zusatzleistungenNames as unknown[])
+            .map(n => zusatzleistungenList.find(r => matchName(String(n), [String(r.fields.leistungsname ?? '')])))
+            .filter((r): r is NonNullable<typeof r> => Boolean(r))
+            .map(r => createRecordUrl(APP_IDS.ZUSATZLEISTUNGEN, r.record_id));
+          if (zusatzleistungenUrls.length > 0) merged['zusatzleistungen'] = zusatzleistungenUrls;
         }
         return merged as Partial<Buchungen['fields']>;
       });
@@ -385,7 +408,7 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, record
           type="number"
           step="any"
           {...numberInputProps(formEnhancements, 'gesamtpreis')}
-          placeholder="Wird berechnet"
+          placeholder=""
           value={fields.gesamtpreis !== undefined ? fields.gesamtpreis : (computedValues['gesamtpreis'] ?? '')}
           onChange={e => setFields(f => ({ ...f, gesamtpreis: clampNumberValue(formEnhancements, 'gesamtpreis', e.target.value) }))}
         />
@@ -396,7 +419,7 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, record
         <Label htmlFor="katze">Katze <span className="text-destructive" aria-hidden="true">*</span></Label>
         <Combobox
           id="katze"
-          placeholder="Welche Katze kommt zu uns?"
+          placeholder=""
           items={katzenListAll.map(r => ({
             id: r.record_id,
             label: String(r.fields.katzenname ?? r.record_id),
@@ -418,7 +441,7 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, record
         <Label htmlFor="anreise">Anreisedatum <span className="text-destructive" aria-hidden="true">*</span></Label>
         <DatePicker
           id="anreise"
-          placeholder="Wann kommt die Katze an?"
+          placeholder=""
           mode="date"
           value={fields.anreise ?? null}
           onChange={v => setFields(f => ({ ...f, anreise: v ?? undefined }))}
@@ -434,7 +457,7 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, record
         <Label htmlFor="abreise">Abreisedatum <span className="text-destructive" aria-hidden="true">*</span></Label>
         <DatePicker
           id="abreise"
-          placeholder="Wann reist die Katze ab?"
+          placeholder=""
           mode="date"
           value={fields.abreise ?? null}
           onChange={v => setFields(f => ({ ...f, abreise: v ?? undefined }))}
@@ -496,7 +519,7 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, record
         <Label htmlFor="kunde">Kunde <span className="text-destructive" aria-hidden="true">*</span></Label>
         <Combobox
           id="kunde"
-          placeholder="Wer ist der Bucher?"
+          placeholder=""
           items={kundenListAll.map(r => ({
             id: r.record_id,
             label: String(r.fields.nachname ?? r.record_id),
@@ -518,7 +541,7 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, record
         <Label htmlFor="zusatzleistungen">Zusatzleistungen</Label>
         <MultiCombobox
           id="zusatzleistungen"
-          placeholder="Zusatzleistungen wählen"
+          placeholder=""
           items={zusatzleistungenListAll.map(r => ({
             id: r.record_id,
             label: String(r.fields.leistungsname ?? r.record_id),
@@ -612,7 +635,7 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, record
         <Label htmlFor="notizen">Notizen</Label>
         <Textarea
           id="notizen"
-          placeholder="Besondere Wünsche, Fütterungshinweise, Verhaltensnotizen..."
+          placeholder=""
           value={fields.notizen ?? ''}
           onChange={e => setFields(f => ({ ...f, notizen: e.target.value }))}
           rows={3}
@@ -627,7 +650,7 @@ export function BuchungenDialog({ open, onClose, onSubmit, defaultValues, record
           type="number"
           step="any"
           {...numberInputProps(formEnhancements, 'preis_pro_nacht')}
-          placeholder="z. B. 25,00"
+          placeholder=""
           value={fields.preis_pro_nacht !== undefined ? fields.preis_pro_nacht : (computedValues['preis_pro_nacht'] ?? '')}
           onChange={e => setFields(f => ({ ...f, preis_pro_nacht: clampNumberValue(formEnhancements, 'preis_pro_nacht', e.target.value) }))}
         />

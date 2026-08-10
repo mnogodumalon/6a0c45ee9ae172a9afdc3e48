@@ -234,7 +234,10 @@ export function ActionsProvider({ children }: { children: ReactNode }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
   const [runningActionId, setRunningActionId] = useState<string | null>(null);
-  const [threadId, setThreadId] = useState(() => crypto.randomUUID());
+  // Explizit string: ohne Annotation erbt der State das schmale
+  // UUID-Template-Literal aus crypto.randomUUID() und lehnt später
+  // zugewiesene Session-IDs (plain string) ab (TS2345).
+  const [threadId, setThreadId] = useState<string>(() => crypto.randomUUID());
   const [fixingMessageId, setFixingMessageId] = useState<string | null>(null);
   const chatLoadingRef = useRef(false);
   // Id of the assistant bubble the current stream fills — version cards are
@@ -419,8 +422,8 @@ export function ActionsProvider({ children }: { children: ReactNode }) {
       if (t.action) applySessionAction(t.action);
       if (t.origin === 'fix') sessionOriginRef.current = 'fix';
       skipDirtyRef.current = true;
-      setThreadId(initialResumeId as ReturnType<typeof crypto.randomUUID>);
-      threadIdRef.current = initialResumeId as ReturnType<typeof crypto.randomUUID>;
+      setThreadId(initialResumeId);
+      threadIdRef.current = initialResumeId;
       setMessages(prev => (prev.length ? prev : restored));
       setResumedSessionAt(t.updated_at ?? t.created_at ?? '');
     });
@@ -438,8 +441,8 @@ export function ActionsProvider({ children }: { children: ReactNode }) {
     sessionOriginRef.current = t.origin === 'fix' ? 'fix' : 'chat';
     chatDirtyRef.current = false;
     skipDirtyRef.current = true;
-    setThreadId(id as ReturnType<typeof crypto.randomUUID>);
-    threadIdRef.current = id as ReturnType<typeof crypto.randomUUID>;
+    setThreadId(id);
+    threadIdRef.current = id;
     setMessages(deserializeMessages(t.messages));
     setResumedSessionAt(t.updated_at ?? t.created_at ?? '');
   }, [persistChat, applySessionAction]);
@@ -642,9 +645,12 @@ export function ActionsProvider({ children }: { children: ReactNode }) {
               return;
             }
             focusChatOnError();
+            // In eine Konstante heben: das if (result.error)-Narrowing gilt
+            // nicht innerhalb der Callback-Funktion (TS2345 string|null).
+            const preflightError = result.error;
             setMessages(prev => [
               ...prev,
-              { id: crypto.randomUUID(), role: 'assistant', ...execErrorUpdate(action, result.error!, result.stdout, undefined, undefined, result.runId) },
+              { id: crypto.randomUUID(), role: 'assistant', ...execErrorUpdate(action, preflightError, result.stdout, undefined, undefined, result.runId) },
             ]);
             return;
           }

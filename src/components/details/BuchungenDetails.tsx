@@ -18,7 +18,7 @@ export interface BuchungenDetailsProps {
   onOpenKunden?: (record: Kunden) => void;
   /** N:1-Ziel „Zusatzleistungen": volle Liste (Hook-Array) — der Block löst Name + Schlüsselfelder selbst auf. */
   zusatzleistungenList: Zusatzleistungen[];
-  /** Klick auf die Zusatzleistungen-Relation → overlay.push auf dessen Detail. */
+  /** Reserviert — Zusatzleistungen ist hier nur über ein Mehrfach-Feld verknüpft (Text-Join, keine Einzel-Relation); Übergabe erlaubt, aber ohne Wirkung. */
   onOpenZusatzleistungen?: (record: Zusatzleistungen) => void;
 }
 
@@ -29,7 +29,6 @@ export function BuchungenDetails({
   kundenList,
   onOpenKunden,
   zusatzleistungenList,
-  onOpenZusatzleistungen: _onOpenZusatzleistungen,
 }: BuchungenDetailsProps) {
   const katzeTarget = katzenList.find(r => r.record_id === extractRecordId(record.fields.katze));
   const kundeTarget = kundenList.find(r => r.record_id === extractRecordId(record.fields.kunde));

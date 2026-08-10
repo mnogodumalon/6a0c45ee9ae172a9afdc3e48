@@ -23,6 +23,12 @@ export interface AttachmentInput {
 
 export interface Zusatzleistungen {
   record_id: string;
+  /** The API field. */
+  created_at: string;
+  updated_at: string | null;
+  /** Alias of created_at, filled by the read helpers. The API sends
+   *  snake_case only — reading `createdat` off a raw record yields
+   *  undefined, which type-checks and then crashes at runtime. */
   createdat: string;
   updatedat: string | null;
   fields: {
@@ -34,6 +40,12 @@ export interface Zusatzleistungen {
 
 export interface Kunden {
   record_id: string;
+  /** The API field. */
+  created_at: string;
+  updated_at: string | null;
+  /** Alias of created_at, filled by the read helpers. The API sends
+   *  snake_case only — reading `createdat` off a raw record yields
+   *  undefined, which type-checks and then crashes at runtime. */
   createdat: string;
   updatedat: string | null;
   fields: {
@@ -50,6 +62,12 @@ export interface Kunden {
 
 export interface Katzen {
   record_id: string;
+  /** The API field. */
+  created_at: string;
+  updated_at: string | null;
+  /** Alias of created_at, filled by the read helpers. The API sends
+   *  snake_case only — reading `createdat` off a raw record yields
+   *  undefined, which type-checks and then crashes at runtime. */
   createdat: string;
   updatedat: string | null;
   fields: {
@@ -66,6 +84,12 @@ export interface Katzen {
 
 export interface Buchungen {
   record_id: string;
+  /** The API field. */
+  created_at: string;
+  updated_at: string | null;
+  /** Alias of created_at, filled by the read helpers. The API sends
+   *  snake_case only — reading `createdat` off a raw record yields
+   *  undefined, which type-checks and then crashes at runtime. */
   createdat: string;
   updatedat: string | null;
   fields: {
@@ -75,7 +99,7 @@ export interface Buchungen {
     abreise?: string; // Format: YYYY-MM-DD oder ISO String
     unterkunftstyp?: LookupValue;
     kunde?: string; // applookup -> URL zu 'Kunden' Record
-    zusatzleistungen?: string;
+    zusatzleistungen?: string[];
     status?: LookupValue;
     notizen?: string;
     preis_pro_nacht?: number;

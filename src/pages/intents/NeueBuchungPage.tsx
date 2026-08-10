@@ -323,7 +323,7 @@ export default function NeueBuchungPage() {
         preis_pro_nacht: preis,
         gesamtpreis,
         // multipleapplookup expects string[] of full record URLs
-        ...(zusatzUrls.length > 0 && { zusatzleistungen: zusatzUrls as unknown as string }),
+        ...(zusatzUrls.length > 0 && { zusatzleistungen: zusatzUrls }),
         status: firstStatus,
         ...(notizen.trim() && { notizen: notizen.trim() }),
       };

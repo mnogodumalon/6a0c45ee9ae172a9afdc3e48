@@ -1,3 +1,17 @@
+/**
+ * ZusatzleistungenDialog — pre-generated create/edit dialog for Zusatzleistungen.
+ *
+ * Props: open, onClose, onSubmit(fields) => Promise<void>, defaultValues?,
+ * recordId? (pass when EDITING — enables the attachments section),
+ * enablePhotoScan?, enablePhotoLocation?.
+ *
+ * defaultValues is SHAPE-TOLERANT and its prop type is the EXPORTED
+ * ZusatzleistungenDialogDefaults — NOT the entity field type: lookup fields accept
+ * the bare KEY string (or LookupValue), applookup fields the bare record id
+ * (or record URL); the dialog normalizes. Type prefill STATE with the export:
+ *  ❌ useState<Partial<Zusatzleistungen['fields']>>({ … })   // LookupValue fields reject string prefills (TS2322)
+ *  ✓ useState<ZusatzleistungenDialogDefaults | undefined>(undefined)
+ */
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import type { Zusatzleistungen } from '@/types/app';
 import { APP_IDS } from '@/types/app';
@@ -18,6 +32,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { IconAlertCircle, IconCamera, IconChevronDown, IconCircleCheck, IconClipboard, IconFileText, IconLoader2, IconPhotoPlus, IconSparkles, IconUpload, IconX } from '@tabler/icons-react';
 import { fileToDataUri, extractFromInput, extractPhotoMeta, reverseGeocode } from '@/lib/ai';
 
+/** Widened prefill type for ZusatzleistungenDialog.defaultValues — see file header. */
+export type ZusatzleistungenDialogDefaults = Zusatzleistungen['fields'];
+
 interface ZusatzleistungenDialogProps {
   open: boolean;
   onClose: () => void;
@@ -25,7 +42,7 @@ interface ZusatzleistungenDialogProps {
   /** SHAPE-TOLERANT: lookup fields accept the bare key (string) or the
    *  LookupValue object; applookup fields the bare record id or the full
    *  record URL — the dialog normalizes both. */
-  defaultValues?: Zusatzleistungen['fields'];
+  defaultValues?: ZusatzleistungenDialogDefaults;
   /** Record id when editing — enables the attachments section. Omit on create. */
   recordId?: string;
   enablePhotoScan?: boolean;
@@ -266,7 +283,7 @@ export function ZusatzleistungenDialog({ open, onClose, onSubmit, defaultValues,
         <Label htmlFor="leistungsname">Name der Leistung <span className="text-destructive" aria-hidden="true">*</span></Label>
         <Input
           id="leistungsname"
-          placeholder="z. B. Fütterung, Spielzeit, Medikamente"
+          placeholder=""
           value={fields.leistungsname ?? ''}
           onChange={e => setFields(f => ({ ...f, leistungsname: e.target.value }))}
           required
@@ -281,7 +298,7 @@ export function ZusatzleistungenDialog({ open, onClose, onSubmit, defaultValues,
         <Label htmlFor="beschreibung">Beschreibung</Label>
         <Textarea
           id="beschreibung"
-          placeholder="Leistungsbeschreibung, Besonderheiten..."
+          placeholder=""
           value={fields.beschreibung ?? ''}
           onChange={e => setFields(f => ({ ...f, beschreibung: e.target.value }))}
           rows={3}
@@ -296,7 +313,7 @@ export function ZusatzleistungenDialog({ open, onClose, onSubmit, defaultValues,
           type="number"
           step="any"
           {...numberInputProps(formEnhancements, 'preis')}
-          placeholder="z. B. 12,50"
+          placeholder=""
           value={fields.preis !== undefined ? fields.preis : (computedValues['preis'] ?? '')}
           onChange={e => setFields(f => ({ ...f, preis: clampNumberValue(formEnhancements, 'preis', e.target.value) }))}
         />
